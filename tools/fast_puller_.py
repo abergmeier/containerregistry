@@ -44,7 +44,7 @@ parser.add_argument('--name', action='store',
 parser.add_argument('--directory', action='store',
                     help='Where to save the image\'s files.')
 
-parser.add_argument('--certificate', nargs='*', help='A comma separated ' +
+parser.add_argument('--certificates', nargs='*', help='A comma separated ' +
                     'tuple of key file, cert, and domain. (From httplib2 ' +
                     'docs) Add a key and cert that will be used for an SSL ' +
                     'connection to the specified domain. keyfile is the name ' +
@@ -64,6 +64,10 @@ def main():
 
   retry_transport_factory = retry_transport.Factory()
   transport = transport_pool.Http(retry_transport_factory.Build, size=_THREADS)
+
+  for item in args.certificates:
+    key, cert, domain = item.split(',')
+    transport.add_certificate(key, cert, domain)
 
   if '@' in args.name:
     name = docker_name.Digest(args.name)
