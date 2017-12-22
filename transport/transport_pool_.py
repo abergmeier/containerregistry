@@ -15,7 +15,7 @@
 """A threadsafe pool of httplib2.Http handlers."""
 
 
-
+import os
 import threading
 
 import httplib2
@@ -23,10 +23,14 @@ import httplib2
 
 class Http(httplib2.Http):
   """A threadsafe pool of httplib2.Http transports."""
-
+  UNIX_CERT = "/etc/ssl/certs/ca-certificates.crt"
+  system_ca_cert = Http.UNIX_CERT if os.path.exists(Http.UNIX_CERT) else None
   def __init__(self,
                transport_factory,
                size=2):
+    # Use system certs if possible
+    if Http.system_ca_cert:
+        httplib2.Http.__init__(self, ca_certs=Http.system_ca_cert)
     self._condition = threading.Condition(threading.Lock())
     self._transports = [transport_factory() for _ in xrange(size)]
 
