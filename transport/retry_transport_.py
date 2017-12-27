@@ -76,6 +76,9 @@ class RetryTransport:
     self._backoff_factor = backoff_factor
     self._should_retry = should_retry_fn
 
+  def add_certificate(self, *args, **kwargs):
+    self._transport.add_certificate(key, *args, **kwargs)
+
   def request(self, *args, **kwargs):
     """Does the request, exponentially backing off and retrying as appropriate.
 
