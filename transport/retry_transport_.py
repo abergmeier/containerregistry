@@ -62,7 +62,7 @@ class Factory(object):
     return RetryTransport(**self.kwargs)
 
 
-class RetryTransport(httplib2.Http):
+class RetryTransport:
   """A wrapper for the given transport which automatically retries errors.
   """
 

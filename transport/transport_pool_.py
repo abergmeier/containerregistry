@@ -21,7 +21,7 @@ import threading
 import httplib2
 
 
-class Http(httplib2.Http):
+class Http:
   """A threadsafe pool of httplib2.Http transports."""
 
   def __init__(self,
