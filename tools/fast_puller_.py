@@ -39,6 +39,8 @@ import httplib2
 parser = argparse.ArgumentParser(
     description='Pull images from a Docker Registry, faaaaast.')
 
+parser.add_argument('--cacerts', help='A file, which contains all certs to use')
+
 parser.add_argument('--name', action='store',
                     help=('The name of the docker image to pull and save. '
                           'Supports fully-qualified tag or digest references.'))
@@ -49,6 +51,14 @@ parser.add_argument('--directory', action='store',
 _THREADS = 8
 
 
+def _apply_ca_certs(callable, ca_certs):
+  """Apply ca_certs attribute to default transport"""
+  def _call_with_ca_certs(*args, **kwargs):
+    kwargs['ca_certs'] = ca_certs
+    return callable(*args, **kwargs)
+  return _call_with_ca_certs
+
+
 def main():
   logging_setup.DefineCommandLineArgs(parser)
   args = parser.parse_args()
@@ -57,8 +67,13 @@ def main():
   if not args.name or not args.directory:
     raise Exception('--name and --directory are required arguments.')
 
+  if args.cacerts:
+    logging.info('Adding CA certificates of %s', args.cacerts)
+    transport_callable = _apply_ca_certs(
+      httplib2.Http, args.cacerts)
+
   retry_factory = retry.Factory()
-  retry_factory = retry_factory.WithSourceTransportCallable(httplib2.Http)
+  retry_factory = retry_factory.WithSourceTransportCallable(transport_callable)
   transport = transport_pool.Http(retry_factory.Build, size=_THREADS)
 
   if '@' in args.name:
